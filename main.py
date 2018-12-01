@@ -7,6 +7,13 @@ def no_zeros(value_list):
     return list(filter(not_zero, value_list))
 
 
+def combine_sets(list_of_sets):
+    c = set()
+    for s in list_of_sets:
+        c = c | s
+    return c
+
+
 puzzle_1 = [
     0, 7, 0,  0, 0, 0,  0, 2, 0,
     2, 0, 0,  5, 0, 1,  0, 0, 8,
@@ -83,7 +90,8 @@ class Cell:
         self.value = value
         self.potential = {1, 2, 3, 4, 5, 6, 7, 8, 9}
         if value != 0:
-            self._potential = [value]
+            self.potential = {value}
+            self.potential.pop()
         self.index = index
         self.column = index % 9
         self.row = int(index/9)
@@ -170,18 +178,30 @@ class Board:
         return locked
 
     def single_eliminate(self, i):
-        rp = [row.potential for row in self.get_row(i)]
-        cp = [column.potential for column in self.get_column(i)]
-        bp = [block.potential for block in self.get_block(i)]
-        ac = rp + cp + bp
-        ap = set()
-        for c in ac:
-            ap = ap | c
-        diff = self.cells[i].potential.difference(ap)
-        if len(diff) == 1:
-            self.cells[i].update_value()
-            return True
-        return False
+        eliminated = False
+        if self.cells[i].value == 0:
+            potentials = set(self.get_row(i)).difference({self.cells[i]})
+            rp = combine_sets([row.potential for row in potentials])
+            rd = self.cells[i].potential.difference(rp)
+            if len(rd) == 1:
+                self.cells[i].potential = rd
+                self.cells[i].update_value()
+                eliminated = True
+            potentials = set(self.get_column(i)).difference({self.cells[i]})
+            cp = combine_sets([column.potential for column in potentials])
+            cd = self.cells[i].potential.difference(cp)
+            if len(cd) == 1:
+                self.cells[i].potential = cd
+                self.cells[i].update_value()
+                eliminated = True
+            potentials = set(self.get_block(i)).difference({self.cells[i]})
+            bp = combine_sets([block.potential for block in potentials])
+            bd = self.cells[i].potential.difference(bp)
+            if len(bd) == 1:
+                self.cells[i].potential = bd
+                self.cells[i].update_value()
+                eliminated = True
+        return eliminated
 
     def test(self):
         self.solved = True
