@@ -180,27 +180,18 @@ class Board:
     def single_eliminate(self, i):
         eliminated = False
         if self.cells[i].value == 0:
-            potentials = set(self.get_row(i)).difference({self.cells[i]})
-            rp = combine_sets([row.potential for row in potentials])
-            rd = self.cells[i].potential.difference(rp)
-            if len(rd) == 1:
-                self.cells[i].potential = rd
-                self.cells[i].update_value()
-                eliminated = True
-            potentials = set(self.get_column(i)).difference({self.cells[i]})
-            cp = combine_sets([column.potential for column in potentials])
-            cd = self.cells[i].potential.difference(cp)
-            if len(cd) == 1:
-                self.cells[i].potential = cd
-                self.cells[i].update_value()
-                eliminated = True
-            potentials = set(self.get_block(i)).difference({self.cells[i]})
-            bp = combine_sets([block.potential for block in potentials])
-            bd = self.cells[i].potential.difference(bp)
-            if len(bd) == 1:
-                self.cells[i].potential = bd
-                self.cells[i].update_value()
-                eliminated = True
+            potentials = [
+                set(self.get_row(i)).difference({self.cells[i]}),
+                set(self.get_column(i)).difference({self.cells[i]}),
+                set(self.get_block(i)).difference({self.cells[i]})
+            ]
+            for potential_set in potentials:
+                p = combine_sets([pot.potential for pot in potential_set])
+                d = self.cells[i].potential.difference(p)
+                if len(d) == 1:
+                    self.cells[i].potential = d
+                    self.cells[i].update_value()
+                    eliminated = True
         return eliminated
 
     def test(self):
