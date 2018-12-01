@@ -63,6 +63,20 @@ puzzle_4 = [
     0, 0, 0,  1, 0, 4,  0, 0, 5
 ]
 
+puzzle_5 = [
+    0, 2, 8,  5, 6, 0,  0, 7, 9,
+    0, 0, 0,  0, 0, 0,  0, 0, 0,
+    7, 4, 5,  8, 0, 0,  0, 3, 0,
+
+    0, 0, 0,  0, 8, 1,  0, 0, 0,
+    3, 7, 0,  0, 0, 0,  0, 4, 2,
+    0, 0, 0,  7, 3, 0,  0, 0, 0,
+
+    0, 5, 0,  0, 0, 9,  6, 1, 7,
+    0, 0, 0,  0, 0, 0,  0, 0, 0,
+    4, 1, 0,  0, 7, 8,  3, 9, 0
+]
+
 class Cell:
 
     def __init__(self, index, value):
@@ -144,33 +158,15 @@ class Board:
         locked = False
         if len(self.cells[i].potential) == 2:
             target = self.cells[i]
-            r = set(self.get_row(i))
-            r.difference_update({target})
-            for cell in r:
-                if len(cell.potential) == 2:
-                    if target.potential == cell.potential:
-                        rd = r.difference({cell})
-                        for _cell in rd:
-                            _cell.potential.difference_update(cell.potential)
-                        locked = True
-            c = set(self.get_column(i))
-            c.difference_update({target})
-            for cell in c:
-                if len(cell.potential) == 2:
-                    if target.potential == cell.potential:
-                        cd = c.difference({cell})
-                        for _cell in cd:
-                            _cell.potential.difference_update(cell.potential)
-                        locked = True
-            b = set(self.get_block(i))
-            b.difference_update({target})
-            for cell in b:
-                if len(cell.potential) == 2:
-                    if target.potential == cell.potential:
-                        bd = b.difference({cell})
-                        for _cell in bd:
-                            _cell.potential.difference_update(cell.potential)
-                        locked = True
+            for group in  [set(self.get_row(i)),set(self.get_column(i)), set(self.get_block(i))]:
+                group.difference_update({target})
+                for cell in group:
+                    if len(cell.potential) == 2:
+                        if target.potential == cell.potential:
+                            rd = group.difference({cell})
+                            for _cell in rd:
+                                _cell.potential.difference_update(cell.potential)
+                            locked = True
         return locked
 
     def single_eliminate(self, i):
@@ -193,7 +189,7 @@ class Board:
             if self.cells[i].value == 0:
                 self.test_cell(i)
                 if self.runs > 10:
-                    self.pair_lock(i)
+                    self.pair_lock_test(i)
                     self.single_eliminate(i)
                 self.solved = self.solved and not_zero(self.cells[i].value)
         self.runs += 1
