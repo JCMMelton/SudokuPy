@@ -189,7 +189,7 @@ class Board:
             if self.cells[i].value == 0:
                 self.test_cell(i)
                 if self.runs > 10:
-                    self.pair_lock_test(i)
+                    self.pair_lock(i)
                     self.single_eliminate(i)
                 self.solved = self.solved and not_zero(self.cells[i].value)
         self.runs += 1
