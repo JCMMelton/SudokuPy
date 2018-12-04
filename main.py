@@ -84,6 +84,7 @@ puzzle_5 = [
     4, 1, 0,  0, 7, 8,  3, 9, 0
 ]
 
+
 class Cell:
 
     def __init__(self, index, value):
@@ -117,10 +118,10 @@ class Cell:
 
 class Board:
 
-    def __init__(self, puz):
+    def __init__(self, puz, fail_limit):
         self.failed = False
         self.solved = False
-        self.fail = 20
+        self.fail = fail_limit
         self.runs = 0
         self.puzzle = puz
         self.cells = []
@@ -166,7 +167,7 @@ class Board:
         locked = False
         if len(self.cells[i].potential) == 2:
             target = self.cells[i]
-            for group in  [set(self.get_row(i)),set(self.get_column(i)), set(self.get_block(i))]:
+            for group in [set(self.get_row(i)), set(self.get_column(i)), set(self.get_block(i))]:
                 group.difference_update({target})
                 for cell in group:
                     if len(cell.potential) == 2:
@@ -175,6 +176,27 @@ class Board:
                             for _cell in rd:
                                 _cell.potential.difference_update(cell.potential)
                             locked = True
+        return locked
+
+    def n_lock(self, i, n):
+        locked = False
+        for x in range(2, n+1):
+            if len(self.cells[i].potential) == x:
+                count = 0
+                target = self.cells[i]
+                for group in [set(self.get_row(i)), set(self.get_column(i)), set(self.get_block(i))]:
+                    group.difference_update({target})
+                    for cell in group:
+                        if len(cell.potential) == x:
+                            if target.potential == cell.potential:
+                                count += 1
+                            if count == x:
+                                if x > 2:
+                                    pass
+                                rd = group.difference({cell})
+                                for _cell in rd:
+                                    _cell.potential.difference_update(cell.potential)
+                                locked = True
         return locked
 
     def single_eliminate(self, i):
@@ -200,6 +222,9 @@ class Board:
             if self.cells[i].value == 0:
                 self.test_cell(i)
                 if self.runs > 10:
+                    # if self.runs > 15:
+                    #     self.n_lock(i, 2)
+                    # else:
                     self.pair_lock(i)
                     self.single_eliminate(i)
                 self.solved = self.solved and not_zero(self.cells[i].value)
@@ -229,7 +254,7 @@ class Board:
         print(out)
 
 
-b1 = Board(puzzle_4)
+b1 = Board(puzzle_3, 20)
 b1.show()
 while not b1.failed and not b1.solved:
     solved = b1.test()
