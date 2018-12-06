@@ -180,21 +180,21 @@ class Board:
 
     def n_lock(self, i, n):
         locked = False
-        for x in range(2, n+1):
+        for x in range(2, n + 1):
             if len(self.cells[i].potential) == x:
-                count = 0
                 target = self.cells[i]
                 for group in [set(self.get_row(i)), set(self.get_column(i)), set(self.get_block(i))]:
                     group.difference_update({target})
+                    locks = []
                     for cell in group:
                         if len(cell.potential) == x:
                             if target.potential == cell.potential:
-                                count += 1
-                            if count == x:
-                                if x > 2:
-                                    pass
-                                rd = group.difference({cell})
+                                locks.append(cell)
+                            if len(locks) == x-1:
+                                rd = group.difference(set(locks))
                                 for _cell in rd:
+                                    if _cell.value != 0:
+                                        continue
                                     _cell.potential.difference_update(cell.potential)
                                 locked = True
         return locked
@@ -222,10 +222,12 @@ class Board:
             if self.cells[i].value == 0:
                 self.test_cell(i)
                 if self.runs > 10:
-                    # if self.runs > 15:
-                    #     self.n_lock(i, 2)
-                    # else:
-                    self.pair_lock(i)
+                    if self.runs > 20:
+                        self.n_lock(i, 4)
+                    elif self.runs > 15:
+                        self.n_lock(i, 3)
+                    else:
+                        self.n_lock(i, 2)
                     self.single_eliminate(i)
                 self.solved = self.solved and not_zero(self.cells[i].value)
         self.runs += 1
@@ -254,7 +256,19 @@ class Board:
         print(out)
 
 
-b1 = Board(puzzle_3, 20)
+b1 = Board(puzzle_3, 30)
+# b2 = Board(puzzle_3, 20)
+#
+# for x in range(2):
+#     b1.cells[x].potential = b2.cells[x].potential = {1, 2}
+#
+# b1.n_lock(0, 2)
+# b2.pair_lock(0)
+#
+# for c in range(0, 9):
+#     print([c, b1.cells[c].potential, b2.cells[c].potential])
+
+
 b1.show()
 while not b1.failed and not b1.solved:
     solved = b1.test()
